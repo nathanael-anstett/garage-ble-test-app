@@ -12,6 +12,7 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
+import { Buffer } from "buffer";
 import { BleManager, LogLevel } from 'react-native-ble-plx';
 import { check, request, PERMISSIONS, RESULTS, openSettings } from 'react-native-permissions';
 
@@ -26,6 +27,7 @@ const BLEDevicesScreen: React.FC = () => {
     const [scanning, setScanning] = useState(false);
     const [devices, setDevices] = useState<Map<string, ListedDevice>>(new Map());
     const [permissionProblem, setPermissionProblem] = useState<string | null>(null);
+    const [helderTestVariable,setHelderTestVariable] = useState(0);
 
     // Initialize BLE manager once
     useEffect(() => {
@@ -168,23 +170,121 @@ const BLEDevicesScreen: React.FC = () => {
         startScan();
     }, [scanning, startScan]);
 
+  const onPress = useCallback(
+    async (deviceId: string) => {
+      if (!managerRef.current) return;
+
+        if (scanning) stopScan(); // stop scanning before connect
+
+        const ok = await ensurePermissions();
+        if (!ok) {
+          console.warn("Permissions not granted");
+          return;
+        }
+
+        console.log(`🔍 Connecting to device ${deviceId}...`);
+        const device = await managerRef.current.connectToDevice(deviceId);
+        const discoveredDevice = await device.discoverAllServicesAndCharacteristics();
+
+        const services = await discoveredDevice.services();
+        for (const service of services) {
+          console.log(`📡 Service: ${service.uuid}`);
+
+          const characteristics = await discoveredDevice.characteristicsForService(service.uuid);
+          for (const char of characteristics) {
+
+
+
+      console.log(
+     `🔹 Characteristic: ${char.uuid} | read: ${char.isReadable} | write: ${char.isWritableWithResponse} | writeNR: ${char.isWritableWithoutResponse} | notify: ${char.isNotifiable} | indicate: ${char.isIndicatable}`
+     );
+          }
+        }
+
+        console.log("✅ UUID discovery complete. Check your Metro logs.");
+        await discoveredDevice.cancelConnection();
+
+    },
+    [scanning, stopScan, ensurePermissions]
+  );
+
+  const onPress2 = useCallback(
+      async (deviceId: string) => {
+          const sleep = ms => new Promise(r => setTimeout(r, ms));
+                  console.log(`🔍 Connecting to device ${deviceId}...`);
+                        try {
+                  //const device = await managerRef.current.connectToDevice(deviceId);
+
+//await sleep(5000)
+const text = "dfgsdfgafgasdf";
+const base64Data = Buffer.from(text, 'utf-8').toString('base64');
+console.log("Write: " + base64Data);
+console.log("Write: " + text);
+await managerRef.current.writeCharacteristicWithoutResponseForDevice("50:65:83:77:5B:9B","00001800-0000-1000-8000-00805f9b34fb", "00002a02-0000-1000-8000-00805f9b34fb", base64Data).then((res) => {
+                                                                                                                                                      console.log("Write: " + text);
+                                                                                                                                                      console.log("res",res)
+                                                                                                                                                    })
+                                                                                                                                                    .catch((error) => {
+                                                                                                                                                      console.log(error.reason);
+                                                                                                                                                    });
+//await sleep(1000)
+//await device.writeCharacteristicWithoutResponseForService("00001800-0000-1000-8000-00805f9b34fb", "00002a03-0000-1000-8000-00805f9b34fb", base64Data).then((res) => {
+//  console.log("Write: " + text);
+//  console.log("res",res)
+//})
+//.catch((error) => {
+//  console.log(error.reason);
+//});
+//await sleep(1000)
+//await device.writeCharacteristicWithoutResponseForService("0000dfb0-0000-1000-8000-00805f9b34fb", "0000dfb1-0000-1000-8000-00805f9b34fb", base64Data) .then((res) => {
+//  console.log("Write: " + text);
+//      console.log("res",res)
+//})
+//.catch((error) => {
+//  console.log(JSON.stringify(error));
+//});
+//await sleep(1000)
+//await device.writeCharacteristicWithoutResponseForService("0000dfb0-0000-1000-8000-00805f9b34fb", "0000dfb2-0000-1000-8000-00805f9b34fb", base64Data) .then((res) => {
+//                                                                                                                                                                                                                                                                                                                                                                                                                                                      console.log("Write: " + text);
+//                                                                                                                                                                                                                                                                                                                                                                                                                                                      console.log("res",res)
+//                                                                                                                                                                                                                                                                                                                                                                                                                                                    })
+//                                                                                                                                                                                                                                                                                                                                                                                                                                                    .catch((error) => {
+//                                                                                                                                                                                                                                                                                                                                                                                                                                                      console.log(error);
+//                                                                                                                                                                                                                                                                                                                                                                                                                                                    });
+//await device.writeWithResponse(base64Data);
+
+ //await device.cancelConnection();
+ console.log(`disconnected`);
+            } catch (err: any) {
+              console.error("❌ Failed to discover UUIDs:", err?.message || err);
+               await discoveredDevice.cancelConnection();
+            }
+        },
+      [scanning, stopScan, ensurePermissions]
+    );
+
     const renderItem = useCallback(
         ({ item }: ListRenderItemInfo<ListedDevice>) => (
             <View style={styles.row}>
                 <View style={styles.rowMain}>
+                  <TouchableOpacity style={styles.button} onPress={() => onPress(item.id)}>
                     <Text style={styles.name} numberOfLines={1}>
                         {item.name ?? 'Unknown device'}
                     </Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.button} onPress={() => onPress2(item.id)}>
                     <Text style={styles.id} numberOfLines={1}>
-                        {item.id}
+                        {item.id}{helderTestVariable}
                     </Text>
+</TouchableOpacity>
+
                 </View>
                 <View style={styles.rowAside}>
                     <Text style={styles.rssi}>{item.rssi ?? '—'} dBm</Text>
                 </View>
             </View>
         ),
-        []
+        [helderTestVariable,onPress,onPress2]
     );
 
     return (
