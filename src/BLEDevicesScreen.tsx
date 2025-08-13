@@ -192,7 +192,20 @@ const BLEDevicesScreen: React.FC = () => {
 
           const characteristics = await discoveredDevice.characteristicsForService(service.uuid);
           for (const char of characteristics) {
+          if (char.isWritableWithoutResponse) {
+            console.log(`Writing "${text}" to ${char.uuid}`);
+            const text = "6";
+            const base64Data = Buffer.from(text, 'utf-8').toString('base64');
+                  const sleep = ms => new Promise(r => setTimeout(r, ms));
 
+            await sleep(1000)
+            await discoveredDevice.writeCharacteristicWithoutResponseForService(
+              service.uuid,
+              char.uuid,
+              base64Data
+            );
+            console.log("✅ Write complete");
+          }
 
 
       console.log(
@@ -213,14 +226,15 @@ const BLEDevicesScreen: React.FC = () => {
           const sleep = ms => new Promise(r => setTimeout(r, ms));
                   console.log(`🔍 Connecting to device ${deviceId}...`);
                         try {
-                  //const device = await managerRef.current.connectToDevice(deviceId);
+                       const device = await managerRef.current.connectToDevice(deviceId);
+                        const discoveredDevice = await device.discoverAllServicesAndCharacteristics();
 
 //await sleep(5000)
-const text = "dfgsdfgafgasdf";
+const text = "6";
 const base64Data = Buffer.from(text, 'utf-8').toString('base64');
 console.log("Write: " + base64Data);
 console.log("Write: " + text);
-await managerRef.current.writeCharacteristicWithoutResponseForDevice("50:65:83:77:5B:9B","00001800-0000-1000-8000-00805f9b34fb", "00002a02-0000-1000-8000-00805f9b34fb", base64Data).then((res) => {
+await discoveredDevice.writeCharacteristicWithoutResponseForService('0000dfb0-0000-1000-8000-00805f9b34fb', '0000dfb1-0000-1000-8000-00805f9b34fb', base64Data).then((res) => {
                                                                                                                                                       console.log("Write: " + text);
                                                                                                                                                       console.log("res",res)
                                                                                                                                                     })
