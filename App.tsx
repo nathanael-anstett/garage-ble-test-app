@@ -11,6 +11,7 @@ import {
   SafeAreaProvider,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
+import BLEDevicesScreen from './src/BLEDevicesScreen';
 
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
@@ -26,14 +27,7 @@ function App() {
 function AppContent() {
   const safeAreaInsets = useSafeAreaInsets();
 
-  return (
-    <View style={styles.container}>
-      <NewAppScreen
-        templateFileName="App.tsx"
-        safeAreaInsets={safeAreaInsets}
-      />
-    </View>
-  );
+  return <BLEDevicesScreen />;
 }
 
 const styles = StyleSheet.create({
