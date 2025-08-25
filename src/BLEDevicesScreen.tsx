@@ -42,8 +42,8 @@ const BLEDevicesScreen: React.FC = () => {
     }, []);
 
     const sortedDevices = useMemo(() => {
-        console.log('Sorting devices:', Array.from(devices.values()));
-        return Array.from(devices.values()).sort((a, b) => {
+        console.log('Sorting devices:', Array.from(devices.values()).filter((device)=>device.name && device.name.toLowerCase().includes("nath")));
+        return Array.from(devices.values()).filter((device)=>device.name &&  device.name.toLowerCase().includes("nath")).sort((a, b) => {
             const ra = a.rssi ?? -9999;
             const rb = b.rssi ?? -9999;
             return rb - ra;
@@ -192,20 +192,20 @@ const BLEDevicesScreen: React.FC = () => {
 
           const characteristics = await discoveredDevice.characteristicsForService(service.uuid);
           for (const char of characteristics) {
-          if (char.isWritableWithoutResponse) {
-            console.log(`Writing "${text}" to ${char.uuid}`);
-            const text = "6";
-            const base64Data = Buffer.from(text, 'utf-8').toString('base64');
-                  const sleep = ms => new Promise(r => setTimeout(r, ms));
-
-            await sleep(1000)
-            await discoveredDevice.writeCharacteristicWithoutResponseForService(
-              service.uuid,
-              char.uuid,
-              base64Data
-            );
-            console.log("✅ Write complete");
-          }
+       //   if (char.isWritableWithoutResponse) {
+       //     console.log(`Writing "${text}" to ${char.uuid}`);
+       //     const text = "6";
+       //     const base64Data = Buffer.from(text, 'utf-8').toString('base64');
+       //           const sleep = ms => new Promise(r => setTimeout(r, ms));
+//
+       //     await sleep(1000)
+       //     await discoveredDevice.writeCharacteristicWithoutResponseForService(
+       //       service.uuid,
+       //       char.uuid,
+       //       base64Data
+       //     );
+       //     console.log("✅ Write complete");
+       // //  }
 
 
       console.log(
@@ -234,7 +234,7 @@ const text = "6";
 const base64Data = Buffer.from(text, 'utf-8').toString('base64');
 console.log("Write: " + base64Data);
 console.log("Write: " + text);
-await discoveredDevice.writeCharacteristicWithoutResponseForService('0000dfb0-0000-1000-8000-00805f9b34fb', '0000dfb1-0000-1000-8000-00805f9b34fb', base64Data).then((res) => {
+await discoveredDevice.writeCharacteristicWithResponseForService("00000001-0001-4c7f-9350-d84577f707e1", "00000001-0002-4c7f-9350-d84577f707e1", base64Data).then((res) => {
                                                                                                                                                       console.log("Write: " + text);
                                                                                                                                                       console.log("res",res)
                                                                                                                                                     })
@@ -288,10 +288,12 @@ await discoveredDevice.writeCharacteristicWithoutResponseForService('0000dfb0-00
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.button} onPress={() => onPress2(item.id)}>
                     <Text style={styles.id} numberOfLines={1}>
-                        {item.id}{helderTestVariable}
+                        {item.id}
                     </Text>
 </TouchableOpacity>
-
+                    <Text style={styles.id} numberOfLines={1}>
+                        {item.uuid}
+                    </Text>
                 </View>
                 <View style={styles.rowAside}>
                     <Text style={styles.rssi}>{item.rssi ?? '—'} dBm</Text>
